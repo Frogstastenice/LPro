@@ -9,24 +9,24 @@ with open('Statuses.csv', 'r', encoding='utf-8') as task_file:
 
     for row in reader:
         status_id = row['Id']
-        if status_id == '267' or status_id == '268' or status_id == '269' or status_id == '270' or status_id == '2459':
+        if status_id in {'267', '268', '269', '270', '2459'}:
             statuses_dict[status_id] = 'Экспресс-оценка'
-        elif status_id == '271' or status_id == '272' or status_id == '458325'or status_id == '458326':
+        elif status_id in {'271', '272', '458325', '458326'}:
             statuses_dict[status_id] = 'Входная экспертиза'
-        elif status_id == '273' or status_id == '274' or status_id == '458327':
+        elif status_id in {'273', '274', '458327'}:
             statuses_dict[status_id] = 'Комплексная экспертиза'
-        elif status_id == '275' or status_id == '276' or status_id == '277'or status_id == '278' or status_id == '458328':
+        elif status_id in {'275', '276', '277', '278', '458328'}:
             statuses_dict[status_id] = 'Экспертный совет'
-        elif status_id == '279' or status_id == '20761' or status_id == '192134'or status_id == '192135':
+        elif status_id in {'279', '20761', '192134', '192135'}:
             statuses_dict[status_id] = 'Выдача займов'
 
 
-cur_application = {}
-bar = ''
-if cur_application['IdCurrentStatus'] in termination_statuses:
-    bar = statuses_dict[cur_application['IdPreviousStatus']]
-else:
-    bar = statuses_dict[cur_application['IdCurrentStatus']]
+#cur_application = {}
+#bar = ''
+#if cur_application['IdCurrentStatus'] in termination_statuses:
+ #   bar = statuses_dict[cur_application['IdPreviousStatus']]
+#else:
+ #   bar = statuses_dict[cur_application['IdCurrentStatus']]
 
 
 
