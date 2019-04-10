@@ -1,6 +1,7 @@
 import csv
 
 statuses_dict = {}
+project_start = {}
 termination_statuses = {391056, 458323}
 
 with open('Statuses.csv', 'r', encoding='utf-8') as task_file:
@@ -21,6 +22,18 @@ with open('Statuses.csv', 'r', encoding='utf-8') as task_file:
             statuses_dict[status_id] = 'Выдача займов'
 
 
+with open('ApplicationStatusHistory.csv', 'r', encoding='utf-8') as task_file2:
+    fields2 = ['Id', 'IdProject', 'IdCurrentStatus', 'IdPreviousStatus', 'StatusBeginDate', 'StatusEndDate']
+    reader2 = csv.DictReader(task_file2, fields2, delimiter=',')
+
+    for row2 in reader2:
+        if row2['IdCurrentStatus'] == '268':
+            project_start[row2['IdProject']] = row2['StatusBeginDate']
+
+print(statuses_dict)
+print(project_start)
+
+
 #cur_application = {}
 #bar = ''
 #if cur_application['IdCurrentStatus'] in termination_statuses:
@@ -28,12 +41,3 @@ with open('Statuses.csv', 'r', encoding='utf-8') as task_file:
 #else:
  #   bar = statuses_dict[cur_application['IdCurrentStatus']]
 
-
-
-print(statuses_dict)
-
-#for row in reader:
- #       industry_id = row['ReportIndName']
-  #      if not industry_id in count_prj_dict:
-   #         count_prj_dict[industry_id] = []
-    #    count_prj_dict[industry_id].append(row['IdProject'])
