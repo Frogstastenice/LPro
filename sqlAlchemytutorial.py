@@ -1,12 +1,21 @@
 import sqlalchemy as db
+from sqlalchemy.orm import sessionmaker
+from db_classes import ApplicationStatusHistory
 
 engine = db.create_engine('mssql+pyodbc://pretender:nAJK9bqo$%4Gi^w34Xko@machineslearn.database.windows.net/TestPythonAnalytics?driver=ODBC+Driver+13+for+SQL+Server')
 
+Session = sessionmaker(bind=engine)
+Session.configure(bind=engine)
+session = Session()
+
 connection = engine.connect()
 metadata = db.MetaData()
-Statuses = db.Table('Statuses', metadata, autoload=True, autoload_with=engine)
+#ApStatHis = db.Table('ApllicationStatusHistory', metadata, autoload=True, autoload_with=engine)
 
-print(Statuses.columns.keys())
+#print(ApllicationStatusHistory.columns.keys())
+
+for startdate, enddate in session.query(ApplicationStatusHistory.statusBeginDate, ApplicationStatusHistory.statusEndDate):
+    print(startdate, enddate)
 
 
 #Сейчас можно поэкспериментировать. 
