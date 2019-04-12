@@ -17,6 +17,9 @@ metadata = db.MetaData()
 for startdate, enddate in session.query(ApplicationStatusHistory.statusBeginDate, ApplicationStatusHistory.statusEndDate):
     print(startdate, enddate)
 
+#for row in session.query(ApplicationStatusHistory):
+ #   print(row.ApplicationStatusHistory)
+
 
 #Сейчас можно поэкспериментировать. 
 # Подключиться к нужной таблице БД. 
