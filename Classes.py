@@ -32,9 +32,6 @@ class StatusManager(DbBase):
             elif status_id in {279, 20761, 192134, 192135}:
                 self.statuses_dict[status_id] = 'Выдача займов'
 
-            # Это костыль!
-            self.statuses_dict[None] = 'Херня'
-
             if status_id in {458326, 274, 276, 269}:
                 self.status_color_dict[status_id] = 'Дорабатывается'
             elif status_id in {458325, 279, 273, 458327, 275, 268, 2459}:
@@ -45,9 +42,15 @@ class StatusManager(DbBase):
                 self.status_color_dict[status_id] = 'Подготовка документов'
             elif status_id in {20761}:
                 self.status_color_dict[status_id] = 'Пройден'
+            elif status_id in {391056}:
+                self.status_color_dict[status_id] = 'Проект прекращен'
+            elif status_id in {458323}:
+                self.status_color_dict[status_id] = 'Проект приостановлен'
 
-            # Это костыль!
-            self.status_color_dict[None] = 'Херня'
+    def is_status_valid(self, status_history_row):
+        cur_status = status_history_row.IdCurrentStatus
+        prev_status = status_history_row.IdPreviousStatus
+        return cur_status in self.statuses_dict and cur_status in self.status_color_dict and prev_status in self.statuses_dict and prev_status in self.status_color_dict
 
     def get_stage_by_status(self, status_history_row):
         if status_history_row.IdCurrentStatus in self.termination_statuses:
@@ -59,7 +62,10 @@ class StatusManager(DbBase):
         return self.status_color_dict[status_history_row.IdCurrentStatus]
 
     def get_all_stages(self):
-        return list(sorted(self.statuses_dict.values()))
+        return list(sorted(set(self.statuses_dict.values())))
+
+    def get_all_colors(self):
+        return list(sorted(set(self.status_color_dict.values())))
 
 class ApplicationDataRetriever(DbBase):
     def get_applications_by_dates(self, start_date, end_date):
@@ -67,7 +73,7 @@ class ApplicationDataRetriever(DbBase):
         result = []
         for row in session.query(ApplicationStatusHistory):
             if row.StatusBeginDate < start_date:
-                if row.StatusEndDate >= start_date:
+                if row.StatusEndDate is None or row.StatusEndDate >= start_date:
                     result.append(row)
             elif row.StatusBeginDate <= end_date:
                 result.append(row)

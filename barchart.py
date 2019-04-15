@@ -6,40 +6,55 @@ import plotly.graph_objs as go
 
 py.init_notebook_mode()
 
+def group_by_stages(tuples):
+    result = {}
+    for item in tuples:
+        if not item[1] in result:
+            result[item[1]] = []
+
+        result[item[1]].append(item)
+
+    return result
+
+def group_by_colors(tuples):
+    result = {}
+    for item in tuples:
+        if not item[2] in result:
+            result[item[2]] = []
+        
+        result[item[2]].append(item)
+
+    return result
+
 def plot_bars():
     # Загружаем справочник статусов, этапов и цветов
     statusManager = StatusManager()
     statusManager.load_statuses()
 
     all_stages = statusManager.get_all_stages()
+    all_colors = statusManager.get_all_colors()
 
     # Получаем все заявки по заданному интервалу дат. rows - список с заявками
     retriever = ApplicationDataRetriever()
-    rows = retriever.get_applications_by_dates(datetime(2015, 2, 1), datetime(2015, 5, 1))
+    rows = retriever.get_applications_by_dates(datetime(2019, 2, 1), datetime(2019, 2, 28))
 
     # Создаем кортежи вида (заявка, этап, цвет)
     tuples = []
     for row in rows:
-        tuples.append((row, statusManager.get_stage_by_status(row), statusManager.get_color_by_status(row)))
+        if (statusManager.is_status_valid(row)):
+            tuples.append((row, statusManager.get_stage_by_status(row), statusManager.get_color_by_status(row)))
 
-    # Сортируем кортежи по цвету, получаем список тех же кортежей, но в другом порядке
-    sorted_by_color = list(sorted(tuples, key=lambda item: item[2]))
-
-    # Группируем кортежи по цвету, в color_groups получаем новые кортежи вида (цвет, список кортежей tuples этого цвета)
-    color_groups = groupby(sorted_by_color, lambda item: item[2])
+    # Группируем по цветам новым методом
+    color_groups = group_by_colors(tuples)
 
     bars = []
     # Бежим по цветам, чтобы для каждого цвета создать свой бар
-    for color_group in color_groups:
+    for color in all_colors:
 
-        # Список кортежей tuples каждого цвета сортируем по этапу
-        sorted_by_stages = list(sorted(color_group[1], key=lambda item: item[1]))
-
-        # Отсортированный список кортежей группируем по этапу в словарь
-        stage_groups = {}
-        for stage, stage_tuples in groupby(sorted_by_stages, lambda item: item[1]):
-            stage_groups[stage] = list(stage_tuples)
-
+        # Группируем по этапам в словарь новой функцией
+        color_group = color_groups.get(color, [])
+        stage_groups = group_by_stages(color_group)
+        
         x = []
         for stage in all_stages:
             if stage in stage_groups:
@@ -47,7 +62,7 @@ def plot_bars():
             else:
                 x.append(0)
 
-        bar = go.Bar(y=all_stages, x=x, name=color_group[0], orientation='h')
+        bar = go.Bar(y=all_stages, x=x, name=color, orientation='h')
         
         bars.append(bar)
 
