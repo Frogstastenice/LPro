@@ -4,70 +4,67 @@ from itertools import groupby
 import plotly.offline as py
 import plotly.graph_objs as go
 
-py.init_notebook_mode()
+class Barchart:
 
-def group_by_stages(tuples): # В tuples у нас кортеж (row, этап, цвет)
-    result = {}
-    for item in tuples:
-        if not item[1] in result: # В item[1] - этап
-            result[item[1]] = []
+    def group_by_stages(self, applications, status_manager): 
+        result = {}
+        for item in applications:
+            stage_name = status_manager.get_stage_by_status(item)
+            if not stage_name in result: 
+                result[stage_name] = []
 
-        result[item[1]].append(item)
+            result[stage_name].append(item)
 
-    return result
+        return result
 
-def group_by_colors(tuples):
-    result = {}
-    for item in tuples:
-        if not item[2] in result:
-            result[item[2]] = []
-        
-        result[item[2]].append(item)
 
-    return result
+    def group_by_colors(self, applications, status_manager):
+        result = {}
+        for item in applications:
+            color_name = status_manager.get_color_by_status(item)
+            if not color_name in result:
+                result[color_name] = []
+            
+            result[color_name].append(item)
 
-def plot_bars():
-    # Загружаем справочник статусов, этапов и цветов
-    statusManager = StatusManager()
-    statusManager.load_statuses()
+        return result
 
-    all_stages = statusManager.get_all_stages()
-    all_colors = statusManager.get_all_colors()
+    def plot_bars(self):
+        # Загружаем справочник статусов, этапов и цветов
+        statusManager = StatusManager()
+        statusManager.load_statuses()
 
-    # Получаем все заявки по заданному интервалу дат. rows - список с заявками
-    retriever = ApplicationStatusManager()
-    rows = retriever.get_applications_by_dates(datetime(2019, 2, 1), datetime(2019, 2, 28))
+        all_stages = statusManager.get_all_stages()
+        all_colors = statusManager.get_all_colors()
 
-    # Создаем кортежи вида (заявка, этап, цвет)
-    tuples = []
-    for row in rows:
-        if (statusManager.is_status_valid(row)):
-            tuples.append((row, statusManager.get_stage_by_status(row), statusManager.get_color_by_status(row)))
+        # Получаем все заявки по заданному интервалу дат. rows - список с заявками
+        retriever = ApplicationStatusManager()
+        rows = retriever.get_applications_by_dates(datetime(2019, 2, 1), datetime(2019, 2, 28), statusManager.get_valid_statuses())
 
-    # Группируем по цветам новым методом
-    color_groups = group_by_colors(tuples)
+        # Группируем по цветам новым методом
+        color_groups = self.group_by_colors(rows, statusManager)
 
-    bars = []
-    # Бежим по цветам, чтобы для каждого цвета создать свой бар
-    for color in all_colors:
+        bars = []
+        # Бежим по цветам, чтобы для каждого цвета создать свой бар
+        for color in all_colors:
 
-        # Группируем по этапам в словарь новой функцией
-        color_group = color_groups.get(color, [])
-        stage_groups = group_by_stages(color_group)
-        
-        x = []
-        for stage in all_stages:
-            if stage in stage_groups:
-                x.append(len(stage_groups[stage]))
-            else:
-                x.append(0)
+            # Группируем по этапам в словарь новой функцией
+            color_group = color_groups.get(color, [])
+            stage_groups = self.group_by_stages(color_group, statusManager)
+            
+            x = []
+            for stage in all_stages:
+                if stage in stage_groups:
+                    x.append(len(stage_groups[stage]))
+                else:
+                    x.append(0)
 
-        bar = go.Bar(y=all_stages, x=x, name=color, orientation='h')
-        
-        bars.append(bar)
+            bar = go.Bar(y=all_stages, x=x, name=color, orientation='h')
+            
+            bars.append(bar)
 
-    layout = go.Layout(barmode='stack')
-    figure = go.Figure(data=bars, layout=layout)
-    py.iplot(figure)
+        layout = go.Layout(barmode='stack')
+        figure = go.Figure(data=bars, layout=layout)
+        py.iplot(figure)
 
 #plot_bars()

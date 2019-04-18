@@ -1,3 +1,4 @@
+#%%
 import pandas as pd
 import numpy as np
 import plotly.offline as py
@@ -12,7 +13,9 @@ loan_sums = group.aggregate(np.sum)
 #loan_sums
 
 py.init_notebook_mode()
-pie = go.Pie( labels=loan_sums.index, values=loan_sums['LoanAmount'], hole=0.6,
-title = 'First Chart')
+pie = go.Pie(labels=loan_sums.index,
+             values=loan_sums['LoanAmount'], hole=0.6, title='First pie! (ugly pie)')
+layout = go.Layout(title='First pie! (ugly pie)')
+figure = go.Figure(data=[pie], layout=layout)
 
-py.iplot([pie])
+py.iplot(figure)

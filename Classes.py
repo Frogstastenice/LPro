@@ -50,10 +50,8 @@ class StatusManager(DbBase):
             elif status_id in {458323}:
                 self.status_color_dict[status_id] = 'Проект приостановлен'
 
-    def is_status_valid(self, status_history_row):
-        cur_status = status_history_row.IdCurrentStatus
-        prev_status = status_history_row.IdPreviousStatus
-        return cur_status in self.statuses_dict and cur_status in self.status_color_dict and prev_status in self.statuses_dict and prev_status in self.status_color_dict
+    def get_valid_statuses(self):
+        return set(self.statuses_dict.keys()).intersection(set(self.status_color_dict.keys())).union(self.termination_statuses)
 
     def get_stage_by_status(self, status_history_row):
         if status_history_row.IdCurrentStatus in self.termination_statuses:
@@ -71,10 +69,18 @@ class StatusManager(DbBase):
         return list(sorted(set(self.status_color_dict.values())))
 
 class ApplicationStatusManager(DbBase):
-    def get_applications_by_dates(self, start_date, end_date):
+    def get_applications_by_dates(self, start_date, end_date, valid_statuses):
         session = self.get_session()
         result = []
         for row in session.query(ApplicationStatusHistory):
+            if row.IdCurrentStatus is None or not row.IdCurrentStatus in valid_statuses:
+                continue
+            if not row.IdPreviousStatus is None and not row.IdPreviousStatus in valid_statuses:
+                continue
+            if row.IdPreviousStatus in {391056, 458323}: # Enough for the demo, lol
+                continue
+            if row.IdCurrentStatus in {391056, 458323} and row.IdPreviousStatus is None: # Фабрика костылей
+                continue
             if row.StatusBeginDate < start_date:
                 if row.StatusEndDate is None or row.StatusEndDate >= start_date:
                     result.append(row)
