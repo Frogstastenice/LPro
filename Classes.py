@@ -1,4 +1,7 @@
 from db_classes import ApplicationStatusHistory
+from db_classes import Application
+from db_classes import Industry
+from db_classes import ReportIndustry
 from db_classes import Status
 import sqlalchemy as db
 from sqlalchemy.orm import sessionmaker
@@ -67,7 +70,7 @@ class StatusManager(DbBase):
     def get_all_colors(self):
         return list(sorted(set(self.status_color_dict.values())))
 
-class ApplicationDataRetriever(DbBase):
+class ApplicationStatusManager(DbBase):
     def get_applications_by_dates(self, start_date, end_date):
         session = self.get_session()
         result = []
@@ -79,4 +82,28 @@ class ApplicationDataRetriever(DbBase):
                 result.append(row)
         
         return result
+
+class IndustryManager(DbBase):
+    
+    def load_industries(self):
+        self.ind_dict_name = {}
+
+        ind_dict = {}
+        session = self.get_session()
+
+        for row in session.query(ReportIndustry):
+            ind_dict[row.Id] = row.ReportIndustryName.strip()
+
+        for row in session.query(Industry):
+            self.ind_dict_name[row.Id] = ind_dict[row.IdReportIndustry]
+
+    def get_report_industry_name(self, industry_id):
+        return self.ind_dict_name[industry_id]
+
+            
+class ApplicationManager(DbBase):
+
+    def get_applications_by_status(self, statuses):
+        session = self.get_session()
+        return session.query(Application).filter(Application.IdStatus.in_(statuses)).all()
 

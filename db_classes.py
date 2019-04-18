@@ -1,7 +1,27 @@
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy import Column, Integer, String, DateTime, Numeric
 
 Base = declarative_base()
+
+class Application(Base):
+    __tablename__ = 'application'
+
+    IdProject = Column(Integer, primary_key=True, nullable=False)
+    IdCompany = Column(Integer, nullable=True)
+    IdManager = Column(Integer, nullable=True)
+    IdSupportProgram = Column(Integer, nullable=True)
+    LoanAmount = Column(Numeric, nullable=True)
+    IdIndustry = Column(Integer, nullable=True)
+    IdStatus = Column(Integer, nullable=True)
+    IdSubindustry = Column(Integer, nullable=True)
+    IdRegion = Column(Integer, nullable=True)
+    ApplicationNumber = Column(String, nullable=True)
+    ProjectName = Column(String, nullable=True)
+    Locality = Column(String, nullable=True)
+    LoanAgreementDate = Column(DateTime, nullable=True)
+    IdBudget = Column(Integer, nullable=True)
+    LoanAgreementPayement = Column(DateTime, nullable=True)
+    IdRegionalFund = Column(Integer, nullable=True)
 
 class ApplicationStatusHistory(Base):
     __tablename__ = 'ApllicationStatusHistory'
@@ -18,6 +38,20 @@ class ApplicationStatusHistory(Base):
 
 #test = ApplicationStatusHistory(42, 102, 12, 11, '01-01-2019', '31-01-2019')
 #print(test)
+
+class Industry(Base):
+    __tablename__ = 'Industries'
+
+    Id = Column(Integer, primary_key=True)
+    IndustryName = Column(String, nullable=True)
+    IdReportIndustry = Column(String, nullable=True)
+
+class ReportIndustry(Base):
+    __tablename__ = 'ReportIndustries'
+
+    Id = Column(Integer, primary_key=True)
+    ReportIndustryName = Column(String, nullable=True)
+
 
 class Status(Base):
     __tablename__ = 'Statuses'

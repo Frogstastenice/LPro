@@ -1,4 +1,4 @@
-from Classes import StatusManager, ApplicationDataRetriever
+from Classes import StatusManager, ApplicationStatusManager
 from datetime import datetime
 from itertools import groupby
 import plotly.offline as py
@@ -6,10 +6,10 @@ import plotly.graph_objs as go
 
 py.init_notebook_mode()
 
-def group_by_stages(tuples):
+def group_by_stages(tuples): # В tuples у нас кортеж (row, этап, цвет)
     result = {}
     for item in tuples:
-        if not item[1] in result:
+        if not item[1] in result: # В item[1] - этап
             result[item[1]] = []
 
         result[item[1]].append(item)
@@ -35,7 +35,7 @@ def plot_bars():
     all_colors = statusManager.get_all_colors()
 
     # Получаем все заявки по заданному интервалу дат. rows - список с заявками
-    retriever = ApplicationDataRetriever()
+    retriever = ApplicationStatusManager()
     rows = retriever.get_applications_by_dates(datetime(2019, 2, 1), datetime(2019, 2, 28))
 
     # Создаем кортежи вида (заявка, этап, цвет)

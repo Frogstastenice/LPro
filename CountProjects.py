@@ -8,7 +8,7 @@ with open('Tabgraph1.csv', 'r', encoding='utf-8') as new_file:
     delimiter=',')
     next(reader)
     for row in reader:
-        industry_id = row['IdReportIndustry']
+        industry_id = row['ReportIndName']
         if not industry_id in count_prj_dict:
             count_prj_dict[industry_id] = []
         count_prj_dict[industry_id].append(row['IdProject'])
