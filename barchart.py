@@ -39,7 +39,11 @@ class Barchart:
 
         # Получаем все заявки по заданному интервалу дат. rows - список с заявками
         retriever = ApplicationStatusManager()
-        rows = retriever.get_applications_by_dates(datetime(2019, 2, 1), datetime(2019, 2, 28), statusManager.get_valid_statuses())
+        rows = retriever.get_applications_by_dates(
+            datetime(2019, 2, 1), 
+            datetime(2019, 2, 28), 
+            statusManager.get_valid_statuses(),
+        )
 
         # Группируем по цветам новым методом
         color_groups = self.group_by_colors(rows, statusManager)

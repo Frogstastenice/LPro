@@ -5,10 +5,11 @@ from db_classes import ReportIndustry
 from db_classes import Status
 import sqlalchemy as db
 from sqlalchemy.orm import sessionmaker
+import config
 
 class DbBase:
     def get_session(self):
-        engine = db.create_engine('mssql+pyodbc://pretender:nAJK9bqo$%4Gi^w34Xko@machineslearn.database.windows.net/TestPythonAnalytics?driver=ODBC+Driver+13+for+SQL+Server')
+        engine = db.create_engine(config.DB_DSN)
         Session = sessionmaker(bind=engine)
         #Session.configure(bind=engine)
         session = Session()
@@ -51,7 +52,7 @@ class StatusManager(DbBase):
                 self.status_color_dict[status_id] = 'Проект приостановлен'
 
     def get_valid_statuses(self):
-        return set(self.statuses_dict.keys()).intersection(set(self.status_color_dict.keys())).union(self.termination_statuses)
+        return set(self.statuses_dict.keys()).intersection(set(self.status_color_dict.keys())).union(self.termination_statuses) #set.self(()) - вынести в переменные
 
     def get_stage_by_status(self, status_history_row):
         if status_history_row.IdCurrentStatus in self.termination_statuses:
@@ -66,18 +67,18 @@ class StatusManager(DbBase):
         return list(sorted(set(self.statuses_dict.values())))
 
     def get_all_colors(self):
-        return list(sorted(set(self.status_color_dict.values())))
+        return list(sorted(set(self.status_color_dict.values()))) #убрать list - вычисление лишнее
 
 class ApplicationStatusManager(DbBase):
     def get_applications_by_dates(self, start_date, end_date, valid_statuses):
         session = self.get_session()
         result = []
-        for row in session.query(ApplicationStatusHistory):
+        for row in session.query(ApplicationStatusHistory): #отфильтровать на уровне бд!!!!!!!!!!!
             if row.IdCurrentStatus is None or not row.IdCurrentStatus in valid_statuses:
                 continue
             if not row.IdPreviousStatus is None and not row.IdPreviousStatus in valid_statuses:
                 continue
-            if row.IdPreviousStatus in {391056, 458323}: # Enough for the demo, lol
+            if row.IdPreviousStatus in {391056, 458323}: # Enough for the demo, lol #constants.py - туда занести статусы, чтобы в коде не было цифр
                 continue
             if row.IdCurrentStatus in {391056, 458323} and row.IdPreviousStatus is None: # Фабрика костылей
                 continue
