@@ -2,6 +2,7 @@ from constants import StageStatusConstants, TerminationStatusConstants, ColorSta
 from db_classes import ApplicationStatusHistory, Application, Industry, ReportIndustry, Status
 import sqlalchemy as db
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy import and_, or_
 import config
 
 class DbBase:
@@ -42,9 +43,9 @@ class StatusManager(DbBase):
                 self.status_color_dict[status_id] = 'Подготовка документов'
             elif status_id in ColorStatusConstants.LoanReceived:
                 self.status_color_dict[status_id] = 'Пройден'
-            elif status_id in TerminationStatusConstants.TerminatedStatus:
+            elif status_id == TerminationStatusConstants.TerminatedStatus:
                 self.status_color_dict[status_id] = 'Проект прекращен'
-            elif status_id in TerminationStatusConstants.PausedStatus:
+            elif status_id == TerminationStatusConstants.PausedStatus:
                 self.status_color_dict[status_id] = 'Проект приостановлен'
 
     def get_valid_statuses(self):
@@ -72,21 +73,59 @@ class ApplicationStatusManager(DbBase):
     def get_applications_by_dates(self, start_date, end_date, valid_statuses):
         session = self.get_session()
         result = []
-        for row in session.query(ApplicationStatusHistory): #отфильтровать на уровне бд!!!!!!!!!!!
-            if row.IdCurrentStatus is None or not row.IdCurrentStatus in valid_statuses:
-                continue
-            if not row.IdPreviousStatus is None and not row.IdPreviousStatus in valid_statuses:
-                continue
-            if row.IdPreviousStatus in TerminationStatusConstants.TerminationStatuses: # Enough for the demo, 
-                continue
-            if row.IdCurrentStatus in TerminationStatusConstants.TerminationStatuses and row.IdPreviousStatus is None: # Фабрика костылей
-                continue
+        filterExpression = and_(
+            ApplicationStatusHistory.IdCurrentStatus.in_(valid_statuses),
+            and_(
+                or_(
+                    ApplicationStatusHistory.IdPreviousStatus.is_(None),
+                    ~ApplicationStatusHistory.IdPreviousStatus.in_(TerminationStatusConstants.TerminationStatuses)
+                ),
+                or_(
+                    ApplicationStatusHistory.IdPreviousStatus.in_(valid_statuses),
+                    and_(
+                        ApplicationStatusHistory.IdPreviousStatus.is_(None),
+                        ~ApplicationStatusHistory.IdCurrentStatus.in_(TerminationStatusConstants.TerminationStatuses)
+                    )
+                )
+            )
+        )
+
+        # ifs = []
+
+        for row in session.query(ApplicationStatusHistory).filter(filterExpression):
             if row.StatusBeginDate < start_date:
                 if row.StatusEndDate is None or row.StatusEndDate >= start_date:
                     result.append(row)
             elif row.StatusBeginDate <= end_date:
                 result.append(row)
+
+        # for row in session.query(ApplicationStatusHistory):
+        #     # if (
+        #     #         (not row.IdPreviousStatus in TerminationStatusConstants.TerminationStatuses 
+        #     #         and ((row.IdPreviousStatus is None and not row.IdCurrentStatus in TerminationStatusConstants.TerminationStatuses)
+        #     #             or row.IdPreviousStatus in valid_statuses))
+        #     #     and 
+        #     #         row.IdCurrentStatus in valid_statuses
+        #     # )
+
+        #     if row.IdCurrentStatus is None or not row.IdCurrentStatus in valid_statuses:
+        #         continue
+        #     if not row.IdPreviousStatus is None and not row.IdPreviousStatus in valid_statuses:
+        #         continue
+        #     if row.IdPreviousStatus in TerminationStatusConstants.TerminationStatuses: # Enough for the demo, 
+        #         continue
+        #     if row.IdPreviousStatus is None and row.IdCurrentStatus in TerminationStatusConstants.TerminationStatuses:
+        #         continue
+        #     if row.StatusBeginDate < start_date:
+        #         if row.StatusEndDate is None or row.StatusEndDate >= start_date:
+        #             ifs.append(row)
+        #     elif row.StatusBeginDate <= end_date:
+        #         ifs.append(row)
         
+        # rids = {row.Id for row in result}
+        # iids = {row.Id for row in ifs}
+        # diff = iids.symmetric_difference(rids)
+
         return result
 
 class IndustryManager(DbBase):
