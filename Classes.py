@@ -1,8 +1,5 @@
-from db_classes import ApplicationStatusHistory
-from db_classes import Application
-from db_classes import Industry
-from db_classes import ReportIndustry
-from db_classes import Status
+from constants import StageStatusConstants, TerminationStatusConstants, ColorStatusConstants
+from db_classes import ApplicationStatusHistory, Application, Industry, ReportIndustry, Status
 import sqlalchemy as db
 from sqlalchemy.orm import sessionmaker
 import config
@@ -19,43 +16,45 @@ class StatusManager(DbBase):
     def load_statuses(self):
         self.statuses_dict = {}
         self.status_color_dict = {}
-        self.termination_statuses = {391056, 458323}
-        
+                
         session = self.get_session()
 
         for row in session.query(Status):
             status_id = row.Id
-            if status_id in {267, 268, 269, 270, 2459}:
+            if status_id in StageStatusConstants.ExpressEval:
                 self.statuses_dict[status_id] = 'Экспресс-оценка'
-            elif status_id in {271, 458325, 458326}:
+            elif status_id in StageStatusConstants.EntryExp:
                 self.statuses_dict[status_id] = 'Входная экспертиза'
-            elif status_id in {272, 273, 274, 458327}:
+            elif status_id in StageStatusConstants.ComplexExp:
                 self.statuses_dict[status_id] = 'Комплексная экспертиза'
-            elif status_id in {275, 276, 277, 278, 458328}:
+            elif status_id in StageStatusConstants.ExpCouncil:
                 self.statuses_dict[status_id] = 'Экспертный совет'
-            elif status_id in {279, 20761, 192134, 192135}:
+            elif status_id in StageStatusConstants.LoanIssue:
                 self.statuses_dict[status_id] = 'Выдача займов'
 
-            if status_id in {458326, 274, 276, 269}:
+            if status_id in ColorStatusConstants.Refinement:
                 self.status_color_dict[status_id] = 'Дорабатывается'
-            elif status_id in {458325, 279, 273, 458327, 275, 268, 2459}:
+            elif status_id in ColorStatusConstants.OnApproval:
                 self.status_color_dict[status_id] = 'На рассмотрении'
-            elif status_id in {192134, 277, 270}:
+            elif status_id in ColorStatusConstants.Denied:
                 self.status_color_dict[status_id] = 'Отклонен'
-            elif status_id in {271, 272, 192135, 278, 458328}:
+            elif status_id in ColorStatusConstants.DocProcessing:
                 self.status_color_dict[status_id] = 'Подготовка документов'
-            elif status_id in {20761}:
+            elif status_id in ColorStatusConstants.LoanReceived:
                 self.status_color_dict[status_id] = 'Пройден'
-            elif status_id in {391056}:
+            elif status_id in TerminationStatusConstants.TerminatedStatus:
                 self.status_color_dict[status_id] = 'Проект прекращен'
-            elif status_id in {458323}:
+            elif status_id in TerminationStatusConstants.PausedStatus:
                 self.status_color_dict[status_id] = 'Проект приостановлен'
 
     def get_valid_statuses(self):
-        return set(self.statuses_dict.keys()).intersection(set(self.status_color_dict.keys())).union(self.termination_statuses) #set.self(()) - вынести в переменные
+        stages = set(self.statuses_dict.keys())
+        status_color = set(self.status_color_dict.keys())
+
+        return stages.intersection(status_color).union(TerminationStatusConstants.TerminationStatuses)
 
     def get_stage_by_status(self, status_history_row):
-        if status_history_row.IdCurrentStatus in self.termination_statuses:
+        if status_history_row.IdCurrentStatus in TerminationStatusConstants.TerminationStatuses:
             return self.statuses_dict[status_history_row.IdPreviousStatus]
         else:
             return self.statuses_dict[status_history_row.IdCurrentStatus]
@@ -67,7 +66,7 @@ class StatusManager(DbBase):
         return list(sorted(set(self.statuses_dict.values())))
 
     def get_all_colors(self):
-        return list(sorted(set(self.status_color_dict.values()))) #убрать list - вычисление лишнее
+        return sorted(set(self.status_color_dict.values()))
 
 class ApplicationStatusManager(DbBase):
     def get_applications_by_dates(self, start_date, end_date, valid_statuses):
@@ -78,9 +77,9 @@ class ApplicationStatusManager(DbBase):
                 continue
             if not row.IdPreviousStatus is None and not row.IdPreviousStatus in valid_statuses:
                 continue
-            if row.IdPreviousStatus in {391056, 458323}: # Enough for the demo, lol #constants.py - туда занести статусы, чтобы в коде не было цифр
+            if row.IdPreviousStatus in TerminationStatusConstants.TerminationStatuses: # Enough for the demo, 
                 continue
-            if row.IdCurrentStatus in {391056, 458323} and row.IdPreviousStatus is None: # Фабрика костылей
+            if row.IdCurrentStatus in TerminationStatusConstants.TerminationStatuses and row.IdPreviousStatus is None: # Фабрика костылей
                 continue
             if row.StatusBeginDate < start_date:
                 if row.StatusEndDate is None or row.StatusEndDate >= start_date:
