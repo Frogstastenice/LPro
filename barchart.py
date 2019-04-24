@@ -69,6 +69,7 @@ class Barchart:
 
         layout = go.Layout(barmode='stack')
         figure = go.Figure(data=bars, layout=layout)
+        figure['layout'].update(autosize=False, width=900, height=600, margin=dict(l=180))
         py.iplot(figure)
 
 #plot_bars()
