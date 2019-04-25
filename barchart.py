@@ -29,7 +29,7 @@ class Barchart:
 
         return result
 
-    def plot_bars(self):
+    def get_bars(self, start_date, end_date):
         # Загружаем справочник статусов, этапов и цветов
         statusManager = StatusManager()
         statusManager.load_statuses()
@@ -40,8 +40,8 @@ class Barchart:
         # Получаем все заявки по заданному интервалу дат. rows - список с заявками
         retriever = ApplicationStatusManager()
         rows = retriever.get_applications_by_dates(
-            datetime(2019, 2, 1), 
-            datetime(2019, 2, 28), 
+            start_date, 
+            end_date, 
             statusManager.get_valid_statuses(),
         )
 
@@ -70,6 +70,7 @@ class Barchart:
         layout = go.Layout(barmode='stack')
         figure = go.Figure(data=bars, layout=layout)
         figure['layout'].update(autosize=False, width=900, height=600, margin=dict(l=180))
-        py.iplot(figure)
+        #py.iplot(figure)
+        return figure
 
 #plot_bars()
