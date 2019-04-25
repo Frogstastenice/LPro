@@ -17,6 +17,7 @@ class StatusManager(DbBase):
     def load_statuses(self):
         self.statuses_dict = {}
         self.status_color_dict = {}
+        self.statuses_passed_dict = {}
                 
         session = self.get_session()
 
@@ -48,6 +49,17 @@ class StatusManager(DbBase):
             elif status_id == TerminationStatusConstants.PausedStatus:
                 self.status_color_dict[status_id] = 'Проект приостановлен'
 
+            if status_id in StagePassedConstants.ExpressEvalPassed:
+                self.statuses_passed_dict[status_id] = 'Экспресс-оценка'
+            elif status_id in StagePassedConstants.EntryExpPassed:
+                self.statuses_passed_dict[status_id] = 'Входная экспертиза'
+            elif status_id in StagePassedConstants.ComplexExpPassed:
+                self.statuses_passed_dict[status_id] = 'Комплексная экспертиза'
+            elif status_id in StagePassedConstants.ExpCouncilPassed:
+                self.statuses_passed_dict[status_id] = 'Экспертный совет'
+            elif status_id in StagePassedConstants.LoanIssuePassed:
+                self.statuses_passed_dict[status_id] = 'Выдача займов'
+
     def get_valid_statuses(self):
         stages = set(self.statuses_dict.keys())
         status_color = set(self.status_color_dict.keys())
@@ -62,6 +74,9 @@ class StatusManager(DbBase):
 
     def get_color_by_status(self, status_history_row):
         return self.status_color_dict[status_history_row.IdCurrentStatus]
+
+    def get_passed_stage_by_status(self, status_history_row):
+        return self.statuses_passed_dict[status_history_row.IdCurrentStatus]
 
     def get_all_stages(self):
         return list(sorted(set(self.statuses_dict.values())))

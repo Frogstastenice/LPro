@@ -16,3 +16,13 @@ class ColorStatusConstants:
     Denied = {192134, 277, 270}
     DocProcessing = {271, 272, 192135, 278, 458328}
     LoanReceived = {20761}
+
+class StagePassedConstants:
+    ExpressEvalPassed = {271, 458325, 458327, 458326, 273, 458328,
+                         275, 276, 277, 278, 279, 192135, 192134, 20761, 3126345, 7552031}
+    EntryExpPassed = {273, 458328, 275, 276,
+                      277, 278, 279, 192135, 192134, 20761}
+    ComplexExpPassed = {458328, 275, 276, 277, 278, 279, 192135, 192134, 20761}
+    ExpCouncilPassed = {278, 279, 192135, 192134, 20761}
+    LoanIssuePassed = {20761}
+
