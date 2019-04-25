@@ -102,7 +102,8 @@ class Piechart:
         }
 
 
-        py.iplot(fig2)
+        return fig2
+        #py.iplot(fig2)
 
 
 
