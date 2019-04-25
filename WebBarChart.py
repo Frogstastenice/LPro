@@ -3,7 +3,7 @@ import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
 
-
+from WebApp import app
 from barchart import Barchart
 from dateutil.relativedelta import relativedelta, TH, WE
 from datetime import datetime
@@ -23,11 +23,11 @@ while True:
 barfigure = Barchart()
 #bargraph = barfigure.get_bars()
 
-external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
+#external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
-app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+#app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
-app.layout = html.Div(children=[
+layout = html.Div(children=[
     html.H4(children='Еженедельный отчет'),
 
     html.Div(children='''
@@ -45,9 +45,10 @@ app.layout = html.Div(children=[
             '%d-%b'), 'value': date.strftime('%Y-%m-%d')} for date in button_list],
         value=button_list[-1].strftime('%Y-%m-%d'),
         labelStyle={'display': 'inline-block'}
-    )
-])
+    ),
 
+    html.Div([dcc.Link('Распределение заявок по отраслям', href='/piechart')])
+])
 
 @app.callback(
     Output('barchart', 'figure'),
@@ -59,5 +60,5 @@ def update_plot(input_data):
     return barfigure.get_bars(start_date, end_date)
 
 
-if __name__ == '__main__':
-    app.run_server(debug=True)
+#if __name__ == '__main__':
+ #   app.run_server(debug=True)
