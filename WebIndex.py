@@ -22,12 +22,12 @@ index_layout = html.Div([
 @app.callback(Output('page-content', 'children'),
               [Input('url', 'pathname')])
 def display_page(pathname):
-    if pathname.lower() == '/barchart':
+    if pathname is None or pathname == '' or pathname == '/':
+        return index_layout
+    elif pathname.lower() == '/barchart':
          return WebBarChart.layout
     elif pathname.lower() == '/piechart':
          return WebPieChart.layout
-    elif pathname == '' or pathname == '/':
-        return index_layout
     else:
         return '404'
 
