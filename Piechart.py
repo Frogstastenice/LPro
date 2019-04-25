@@ -62,7 +62,7 @@ class Piechart:
                     'title': {
                         'text': '{:.2f} млн'.format(loans_sum),
                         'font': {
-                            'size': 30
+                            'size': 26
                         }
                     },
                     'textinfo': 'text',
@@ -80,7 +80,7 @@ class Piechart:
                     'title': {
                         'text': '{} проект'.format(projects_sum),
                         'font': {
-                            'size': 30
+                            'size': 26
                         }
                     },
                     'textinfo': 'text',
@@ -93,9 +93,9 @@ class Piechart:
             'layout': {
                 "grid": {"rows": 1, "columns": 2},
                 'title': {
-                    'text': 'Инвестиции по отраслям',
+                    'text': 'Распределение заявок по отраслям',
                     'font': {
-                        'size': 44
+                        'size': 28
                     }
                 }
             }

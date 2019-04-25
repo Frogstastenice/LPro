@@ -14,9 +14,9 @@ app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 app.layout = html.Div(children=[
     html.H6(children='Еженедельный отчет'),
 
-    html.Div(children='''
-        Распределение проектов по отраслям
-    '''),
+    #html.Div(children='''
+     #   Распределение проектов по отраслям
+    #'''),
 
     dcc.Graph(
         id='piechart',
