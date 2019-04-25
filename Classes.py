@@ -73,7 +73,7 @@ class ApplicationStatusManager(DbBase):
     def get_applications_by_dates(self, start_date, end_date, valid_statuses):
         session = self.get_session()
         result = []
-        filterExpression = and_(
+        statusFilter = and_(
             ApplicationStatusHistory.IdCurrentStatus.in_(valid_statuses),
             and_(
                 or_(
@@ -89,39 +89,36 @@ class ApplicationStatusManager(DbBase):
                 )
             )
         )
+        dateFilter = or_(
+            and_(
+                ApplicationStatusHistory.StatusBeginDate < start_date, 
+                or_(
+                    ApplicationStatusHistory.StatusEndDate.is_(None),
+                    ApplicationStatusHistory.StatusEndDate >= start_date
+                )
+            ),
+            and_(
+                ApplicationStatusHistory.StatusBeginDate <= end_date,
+                ApplicationStatusHistory.StatusBeginDate >= start_date
+            )
+        )
+        
+        filterExpression = and_(
+            statusFilter,
+            dateFilter
+        )
 
-        # ifs = []
+        #ifs = []
 
-        for row in session.query(ApplicationStatusHistory).filter(filterExpression):
-            if row.StatusBeginDate < start_date:
-                if row.StatusEndDate is None or row.StatusEndDate >= start_date:
-                    result.append(row)
-            elif row.StatusBeginDate <= end_date:
-                result.append(row)
-
-        # for row in session.query(ApplicationStatusHistory):
-        #     # if (
-        #     #         (not row.IdPreviousStatus in TerminationStatusConstants.TerminationStatuses 
-        #     #         and ((row.IdPreviousStatus is None and not row.IdCurrentStatus in TerminationStatusConstants.TerminationStatuses)
-        #     #             or row.IdPreviousStatus in valid_statuses))
-        #     #     and 
-        #     #         row.IdCurrentStatus in valid_statuses
-        #     # )
-
-        #     if row.IdCurrentStatus is None or not row.IdCurrentStatus in valid_statuses:
-        #         continue
-        #     if not row.IdPreviousStatus is None and not row.IdPreviousStatus in valid_statuses:
-        #         continue
-        #     if row.IdPreviousStatus in TerminationStatusConstants.TerminationStatuses: # Enough for the demo, 
-        #         continue
-        #     if row.IdPreviousStatus is None and row.IdCurrentStatus in TerminationStatusConstants.TerminationStatuses:
-        #         continue
+        # for row in session.query(ApplicationStatusHistory).filter(statusFilter):
         #     if row.StatusBeginDate < start_date:
         #         if row.StatusEndDate is None or row.StatusEndDate >= start_date:
         #             ifs.append(row)
         #     elif row.StatusBeginDate <= end_date:
         #         ifs.append(row)
-        
+
+        result = session.query(ApplicationStatusHistory).filter(filterExpression).all()
+
         # rids = {row.Id for row in result}
         # iids = {row.Id for row in ifs}
         # diff = iids.symmetric_difference(rids)
