@@ -17,6 +17,18 @@ class Barchart:
 
         return result
 
+    def group_by_passed_stages(self, applications, status_manager):
+        result = {}
+        for item in applications:
+            passed_stages = status_manager.get_passed_stages_by_status(item)
+            for stage in passed_stages:
+                if not stage in result:
+                    result[stage] = []
+
+                result[stage].append(item)
+
+        return result
+
 
     def group_by_colors(self, applications, status_manager):
         result = {}
@@ -31,30 +43,30 @@ class Barchart:
 
     def get_bars(self, start_date, end_date):
         # Загружаем справочник статусов, этапов и цветов
-        statusManager = StatusManager()
-        statusManager.load_statuses()
+        status_manager = StatusManager()
+        status_manager.load_statuses()
 
-        all_stages = statusManager.get_all_stages()
-        all_colors = statusManager.get_all_colors()
+        all_stages = status_manager.get_all_stages()
+        all_colors = status_manager.get_all_colors()
 
         # Получаем все заявки по заданному интервалу дат. rows - список с заявками
         retriever = ApplicationStatusManager()
         rows = retriever.get_applications_by_dates(
             start_date, 
             end_date, 
-            statusManager.get_valid_statuses(),
+            status_manager.get_valid_statuses(),
         )
 
         # Группируем по цветам новым методом
-        color_groups = self.group_by_colors(rows, statusManager)
+        color_groups = self.group_by_colors(rows, status_manager)
 
-        bars = []
+        color_bars = []
         # Бежим по цветам, чтобы для каждого цвета создать свой бар
         for color in all_colors:
 
             # Группируем по этапам в словарь новой функцией
             color_group = color_groups.get(color, [])
-            stage_groups = self.group_by_stages(color_group, statusManager)
+            stage_groups = self.group_by_stages(color_group, status_manager)
             
             x = []
             for stage in all_stages:
@@ -65,10 +77,23 @@ class Barchart:
 
             bar = go.Bar(y=all_stages, x=x, name=color, orientation='h')
             
-            bars.append(bar)
+            color_bars.append(bar)
+        
+        passed_stages_groups = self.group_by_passed_stages(rows, status_manager)
+
+        x = []
+        for stage in all_stages:
+            if stage in passed_stages_groups:
+                x.append(len(passed_stages_groups[stage]))
+            else:
+                x.append(0)
+        
+        bar = go.Bar(y=all_stages, x=x, name='Этап пройден', orientation='h')
+
+        color_bars.append(bar)
 
         layout = go.Layout(barmode='stack')
-        figure = go.Figure(data=bars, layout=layout)
+        figure = go.Figure(data=color_bars, layout=layout)
         figure['layout'].update(autosize=False, width=900, height=600, margin=dict(l=180))
         #py.iplot(figure)
         return figure

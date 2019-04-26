@@ -1,4 +1,4 @@
-from constants import StageStatusConstants, TerminationStatusConstants, ColorStatusConstants
+from constants import StageStatusConstants, TerminationStatusConstants, ColorStatusConstants, StagePassedConstants
 from db_classes import ApplicationStatusHistory, Application, Industry, ReportIndustry, Status
 import sqlalchemy as db
 from sqlalchemy.orm import sessionmaker
@@ -17,7 +17,6 @@ class StatusManager(DbBase):
     def load_statuses(self):
         self.statuses_dict = {}
         self.status_color_dict = {}
-        self.statuses_passed_dict = {}
                 
         session = self.get_session()
 
@@ -49,17 +48,6 @@ class StatusManager(DbBase):
             elif status_id == TerminationStatusConstants.PausedStatus:
                 self.status_color_dict[status_id] = 'Проект приостановлен'
 
-            if status_id in StagePassedConstants.ExpressEvalPassed:
-                self.statuses_passed_dict[status_id] = 'Экспресс-оценка'
-            elif status_id in StagePassedConstants.EntryExpPassed:
-                self.statuses_passed_dict[status_id] = 'Входная экспертиза'
-            elif status_id in StagePassedConstants.ComplexExpPassed:
-                self.statuses_passed_dict[status_id] = 'Комплексная экспертиза'
-            elif status_id in StagePassedConstants.ExpCouncilPassed:
-                self.statuses_passed_dict[status_id] = 'Экспертный совет'
-            elif status_id in StagePassedConstants.LoanIssuePassed:
-                self.statuses_passed_dict[status_id] = 'Выдача займов'
-
     def get_valid_statuses(self):
         stages = set(self.statuses_dict.keys())
         status_color = set(self.status_color_dict.keys())
@@ -75,11 +63,33 @@ class StatusManager(DbBase):
     def get_color_by_status(self, status_history_row):
         return self.status_color_dict[status_history_row.IdCurrentStatus]
 
-    def get_passed_stage_by_status(self, status_history_row):
-        return self.statuses_passed_dict[status_history_row.IdCurrentStatus]
+    def get_passed_stages_by_status(self, status_history_row):
+        result = []
+        status_id = None
+        
+        if status_history_row.IdCurrentStatus in TerminationStatusConstants.TerminationStatuses:
+            status_id = status_history_row.IdPreviousStatus
+        else:
+            status_id = status_history_row.IdCurrentStatus
 
-    def get_all_stages(self):
-        return list(sorted(set(self.statuses_dict.values())))
+        if status_id in StagePassedConstants.ExpressEvalPassed:
+            result.append('Экспресс-оценка')
+        if status_id in StagePassedConstants.EntryExpPassed:
+            result.append('Входная экспертиза')
+        if status_id in StagePassedConstants.ComplexExpPassed:
+            result.append('Комплексная экспертиза')
+        if status_id in StagePassedConstants.ExpCouncilPassed:
+            result.append('Экспертный совет')
+        if status_id in StagePassedConstants.LoanIssuePassed:
+            result.append('Привлечение инвестиций')
+
+        return result
+
+    def get_all_stages(self):  # Хардкод, т. к. важен порядок, а statuses_dict.values() не гарантирует порядок.
+        stages = ['Экспресс-оценка', 'Входная экспертиза', 'Комплексная экспертиза', 'Экспертный совет', 'Привлечение инвестиций']
+        stages.reverse()
+
+        return stages
 
     def get_all_colors(self):
         return sorted(set(self.status_color_dict.values()))
